@@ -1,0 +1,470 @@
+import tkinter as tk
+from PIL import Image, ImageTk, ImageFile
+import tkinter.messagebox as msgbox
+import os
+import qrcode
+import requests
+import threading
+import serial
+import time
+import nfc
+import serial.tools.list_ports
+import pynmea2   
+
+FIREBASE_BASE = "https://expo-project-c59bb-default-rtdb.asia-southeast1.firebasedatabase.app"
+ORDERS_URL    = f"{FIREBASE_BASE}/orders"
+LOCATION_URL  = f"{FIREBASE_BASE}/device/location.json"
+
+SESSION = requests.Session()  
+
+# [CH00] GPS
+
+def connect_gps():
+    while True:
+        try:
+            gps_port = serial.Serial("/dev/serial0", baudrate=9600, timeout=1)
+            print(" GPS 모듈 연결 성공 (/dev/serial0)")
+            return gps_port
+        except Exception as e:
+            print(f" GPS 연결 실패: {e}, 5초 후 재시도")
+            time.sleep(5)
+
+def gps_listener():
+    gps_port = connect_gps()
+    last_sent = 0   # 업로드 주기 
+    last_log = 0    # 로그 출력 주기 
+    log_interval = 5
+    upload_interval = 1
+
+    while True:
+        try:
+            line = gps_port.readline().decode("utf-8", errors="ignore")
+            if line.startswith(("$GNGGA", "$GPGGA")):
+                msg = pynmea2.parse(line)
+
+                
+                if getattr(msg, "gps_qual", 0) and msg.gps_qual > 0 and msg.latitude and msg.longitude:
+                    lat = float(msg.latitude)
+                    lon = float(msg.longitude)
+
+                    now = time.time()
+
+                    #업로드 (1초마다)
+                    if now - last_sent >= upload_interval:
+                        try:
+                            SESSION.patch(
+                                LOCATION_URL,
+                                json={"lat": lat, "lon": lon, "timestamp": int(now)},
+                                timeout=5
+                            )
+                        except Exception as re:
+                            print(f"Firebase 위치 업로드 에러: {re}")
+                        last_sent = now
+
+                    # 로그 출력 (5초마다)
+                    if now - last_log >= log_interval:
+                        print(f"[GPS] 현재 좌표 lat={lat}, lon={lon}")
+                        last_log = now
+
+        except Exception as e:
+            print(f" GPS 에러: {e} — 재연결 시도")
+            try:
+                gps_port.close()
+            except:
+                pass
+            gps_port = connect_gps()
+
+
+# 백그라운드 실행
+threading.Thread(target=gps_listener, daemon=True).start()
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
+# 아두이노 연결 
+
+def find_arduino_port():
+    ports = serial.tools.list_ports.comports()
+    for p in ports:
+        if "ttyACM" in p.device or "Arduino" in p.description:
+            return p.device
+    return None
+
+try:
+    port_name = find_arduino_port()
+    if port_name:
+        serial_port = serial.Serial(port_name, 9600, timeout=1)
+        print(f"Serial port opened: {port_name}")
+    else:
+        print("아두이노 포트를 찾을 수 없습니다")
+        serial_port = None
+except Exception as e:
+    print(f"Failed to open serial port: {e}")
+    serial_port = None
+
+
+
+root = tk.Tk()
+root.title("MoAS Vending UI")
+root.geometry("800x480")
+root.configure(bg="black")
+root.attributes("-fullscreen", True)
+
+def load_image(path):
+    img = Image.open(path)
+    resized = img.resize((800, 480))
+    return ImageTk.PhotoImage(resized)
+
+frames = {}
+
+def show_page(name):
+    if name in ["main", "product"]:
+        reset_button_states()
+    for frame in frames.values():
+        frame.pack_forget()
+    frames[name].pack()
+
+def reset_button_states():
+    for name in P_labels:
+        P_labels[name].config(image=P_imgs[name][0])
+    selected_product[0] = None
+    btn_qr.config(image=PAY_imgs["QR"][0])
+    btn_card.config(image=PAY_imgs["CARD"][0])
+    PAY_status["QR"] = False
+    PAY_status["CARD"] = False
+
+# === [CH03] 메인 화면 ===
+main_frame = tk.Frame(root, width=800, height=480)
+main_bg = load_image("img/main_screen.png")
+main_label = tk.Label(main_frame, image=main_bg)
+main_label.pack()
+main_label.bind("<Button-1>", lambda e: show_page("product"))
+frames["main"] = main_frame
+
+# === [CH04] 상품 선택 화면 ===
+product_frame = tk.Frame(root, width=800, height=480, bg="#313131")
+product_bg = load_image("img/background.png")
+tk.Label(product_frame, image=product_bg, bg="#313131").place(x=0, y=0, width=800, height=480)
+
+P_imgs = {
+    "P1": [ImageTk.PhotoImage(Image.open("img/21BOFF.png")), ImageTk.PhotoImage(Image.open("img/21BON.png"))],
+    "P2": [ImageTk.PhotoImage(Image.open("img/22BOFF.png")), ImageTk.PhotoImage(Image.open("img/22BON.png"))],
+    "P3": [ImageTk.PhotoImage(Image.open("img/23BOFF.png")), ImageTk.PhotoImage(Image.open("img/23BON.png"))],
+    "P4": [ImageTk.PhotoImage(Image.open("img/24BOFF.png")), ImageTk.PhotoImage(Image.open("img/24BON.png"))],
+    "P5": [ImageTk.PhotoImage(Image.open("img/25BOFF.png")), ImageTk.PhotoImage(Image.open("img/25BON.png"))],
+    "P6": [ImageTk.PhotoImage(Image.open("img/26BOFF.png")), ImageTk.PhotoImage(Image.open("img/26BON.png"))],
+}
+
+HB_img = ImageTk.PhotoImage(Image.open("img/2HBOFF.png"))
+HB_on  = ImageTk.PhotoImage(Image.open("img/2HBON.png"))
+CB_img = ImageTk.PhotoImage(Image.open("img/2CBOFF.png"))
+CB_on  = ImageTk.PhotoImage(Image.open("img/2CBON.png"))
+
+P_labels = {}
+selected_product = [None]
+
+def select_product(name):
+    if selected_product[0] == name:
+        P_labels[name].config(image=P_imgs[name][0])
+        selected_product[0] = None
+    else:
+        if selected_product[0]:
+            P_labels[selected_product[0]].config(image=P_imgs[selected_product[0]][0])
+        P_labels[name].config(image=P_imgs[name][1])
+        selected_product[0] = name
+        print(f" 선택된 상품: {name}")
+
+coords = {
+    "P1": (176, 10), "P2": (384, 10), "P3": (592, 10),
+    "P4": (176, 245), "P5": (384, 245), "P6": (592, 245)
+}
+
+for name, (x, y) in coords.items():
+    label = tk.Label(product_frame, image=P_imgs[name][0], bg="#313131", bd=0, highlightthickness=0)
+    label.place(x=x, y=y)
+    label.bind("<Button-1>", lambda e, n=name: select_product(n))
+    P_labels[name] = label
+
+def go_to_main():
+    HB.config(image=HB_on)
+    root.after(100, lambda: HB.config(image=HB_img))
+    root.after(150, lambda: show_page("main"))
+
+HB = tk.Button(product_frame, image=HB_img, bd=0, bg="#313131", activebackground="#313131",
+               highlightthickness=0, relief="flat", command=go_to_main)
+HB.place(x=8, y=10)
+
+def go_to_payment():
+    if selected_product[0] is None:
+        msgbox.showwarning("선택 필요", "먼저 상품을 선택해주세요.")
+        return
+    CB.config(image=CB_on)
+    root.after(100, lambda: CB.config(image=CB_img))
+    root.after(150, lambda: show_page("payment"))
+
+CB = tk.Button(product_frame, image=CB_img, bd=0, bg="#313131", activebackground="#313131",
+               highlightthickness=0, relief="flat", command=go_to_payment)
+CB.place(x=8, y=245)
+
+frames["product"] = product_frame
+
+# === [CH05] 결제 화면 ===
+payment_frame = tk.Frame(root, width=800, height=480)
+payment_bg = load_image("img/background.png")
+tk.Label(payment_frame, image=payment_bg).place(x=0, y=0, width=800, height=480)
+
+payment_obj = ImageTk.PhotoImage(Image.open("img/OBJECT.png"))
+tk.Label(payment_frame, image=payment_obj, bg="#313131").place(x=10, y=10)
+
+file_map = {"CARD": "3CDB", "QR": "3QRB", "HOME": "3HB", "BACK": "3RTB"}
+PAY_imgs = {k: [ImageTk.PhotoImage(Image.open(f"img/{v}OFF.png")), ImageTk.PhotoImage(Image.open(f"img/{v}ON.png"))] for k, v in file_map.items()}
+PAY_status = {"CARD": False, "QR": False}
+
+btn_qr = tk.Label(payment_frame, image=PAY_imgs["QR"][0], bg="#313131", highlightthickness=0)
+btn_qr.place(x=410, y=10)
+
+btn_card = tk.Label(payment_frame, image=PAY_imgs["CARD"][0], bg="#313131", highlightthickness=0)
+btn_card.place(x=410, y=240)
+
+btn_back = tk.Label(payment_frame, image=PAY_imgs["BACK"][0], bg="#313131")
+btn_back.place(x=10, y=350)
+
+btn_home = tk.Label(payment_frame, image=PAY_imgs["HOME"][0], bg="#313131")
+btn_home.place(x=203, y=350)
+
+nfc_listener_started = False  
+
+# QR 결제
+def go_to_qr(event):
+    btn_qr.config(image=PAY_imgs["QR"][1])
+    btn_card.config(image=PAY_imgs["CARD"][0])
+    PAY_status["QR"] = True
+    PAY_status["CARD"] = False
+    
+    selected = selected_product[0]
+    if not selected:
+        msgbox.showwarning("선택 필요", "먼저 상품을 선택해주세요.")
+        return
+    
+    product_id_map = {"P1": "1OBJ","P2": "2OBJ","P3": "3OBJ","P4": "4OBJ","P5": "5OBJ","P6": "6OBJ"}
+    qr_data = f"MOAS_{product_id_map.get(selected, '')}"
+    show_page("qr")
+    show_qr(qr_data)
+    start_payment_check()
+
+# 카드 결제
+def go_to_card(event):
+    btn_card.config(image=PAY_imgs["CARD"][1])
+    btn_qr.config(image=PAY_imgs["QR"][0])
+    PAY_status["CARD"] = True
+    PAY_status["QR"] = False
+
+    show_page("cd_view")  
+    start_cd_payment_check()
+
+def go_back(event):
+    show_page("product")
+
+def go_home(event):
+    show_page("main")
+
+btn_qr.bind("<Button-1>", go_to_qr)
+btn_card.bind("<Button-1>", go_to_card)
+btn_back.bind("<Button-1>", go_back)
+btn_home.bind("<Button-1>", go_home)
+
+frames["payment"] = payment_frame
+
+# === [CH06] QR 결제 화면 ===
+qr_frame = tk.Frame(root, width=800, height=480)
+qr_bg = load_image("img/QRVIEW 1.png")
+tk.Label(qr_frame, image=qr_bg).place(x=0, y=0, width=800, height=480)
+qr_code_label = tk.Label(qr_frame, bg="black")
+qr_code_label.place(x=255, y=144, width=290, height=290)
+frames["qr"] = qr_frame
+
+def show_qr(data):
+    qr = qrcode.make(data).resize((290, 290))
+    qr_img = ImageTk.PhotoImage(qr)
+    qr_code_label.config(image=qr_img)
+    qr_code_label.image = qr_img
+
+# === [CH07] Firebase 결제 상태 확인 및 완료 화면 (QR)
+def show_processing_popup(callback_after=None):
+    popup = tk.Toplevel(root)
+    popup.title("결제중")
+    popup.geometry("300x100+250+190")
+    popup.configure(bg="white")
+    popup.attributes("-topmost", True)
+    popup.resizable(False, False)
+
+    label = tk.Label(popup, text="결제중입니다", font=("Arial", 18, "bold"), bg="white", fg="black")
+    label.pack(expand=True, fill="both")
+
+    def close_popup():
+        popup.destroy()
+        if callback_after:
+            callback_after()
+
+    popup.after(2000, close_popup)
+
+qr_finish_frame = tk.Frame(root, width=800, height=480)
+qr_finish_img = ImageTk.PhotoImage(Image.open("img/QRVIEW 2.png"))
+tk.Label(qr_finish_frame, image=qr_finish_img).place(x=0, y=0, width=800, height=480)
+frames["qr_finish"] = qr_finish_frame
+
+def show_qr_finish_then_main():
+    show_page("qr_finish")
+    root.after(2000, lambda: show_page("main"))
+
+def start_payment_check():
+    selected = selected_product[0]
+    if not selected:
+        return
+    idx = list(P_labels.keys()).index(selected) + 1
+    order_id = f"order_test_00{idx}"
+
+    def worker():
+        start = time.time()
+        while time.time() - start < 30:
+            try:
+                res = SESSION.get(f"{ORDERS_URL}/{order_id}.json", timeout=5)
+                if res.status_code == 200:
+                    data = res.json()
+                    print(f"Firebase response for {order_id}: {data}")
+
+                    if data.get("status") == "paid":
+                        pid = data.get("product_id", "")
+                        print(f"Product id: {pid}, preparing to send motor command")
+
+                        pid_map = {"A001": "1","A002": "2","A003": "3","A004": "4","A005": "5","A006": "6"}
+                        motor_char = pid_map.get(pid)
+
+                        if motor_char and serial_port:
+                            try:
+                                serial_port.write(motor_char.encode())
+                                print(f" Sent '{motor_char}' to Arduino")
+                            except Exception as e:
+                                print(f" Serial write error: {e}")
+                        else:
+                            print(f" Motor command not sent. pid={pid}, mapped={motor_char}, serial_port={serial_port}")
+
+                        # 상태 초기화
+                        try:
+                            SESSION.patch(f"{ORDERS_URL}/{order_id}.json", json={"status": "pending"}, timeout=5)
+                        except Exception as pe:
+                            print(f" Reset status error: {pe}")
+
+                        # UI 처리
+                        root.after(0, lambda: show_processing_popup(callback_after=show_qr_finish_then_main))
+                        return
+            except Exception as e:
+                print(f"Exception in Firebase check: {e}")
+            time.sleep(1)
+
+        root.after(100, lambda: [
+            msgbox.showinfo("시간 초과", "30초 동안 결제가 없어 메인 화면으로 돌아갑니다."),
+            show_page("main")
+        ])
+
+    threading.Thread(target=worker, daemon=True).start()
+
+# === [CH08] 카드 결제 화면 (최소 버전)
+cd_view_frame = tk.Frame(root, width=800, height=480)
+cd_view_bg = load_image("img/CDVIEW 1.png")
+tk.Label(cd_view_frame, image=cd_view_bg).place(x=0, y=0, width=800, height=480)
+frames["cd_view"] = cd_view_frame
+
+def start_cd_payment_check():
+    selected = selected_product[0]
+    if not selected:
+        return
+    idx = list(P_labels.keys()).index(selected) + 1
+    order_id = f"order_test_00{idx}"
+
+    def worker():
+        start = time.time()
+        while time.time() - start < 30:
+            try:
+                res = SESSION.get(f"{ORDERS_URL}/{order_id}.json", timeout=5)
+                if res.status_code == 200:
+                    data = res.json()
+                    if data.get("status") == "paid":
+                        return
+            except Exception as e:
+                print(f"Card check error: {e}")
+            time.sleep(1)
+        root.after(100, lambda: [
+            msgbox.showinfo("시간 초과", "30초 동안 결제가 없어 메인 화면으로 돌아갑니다."),
+            show_page("main")
+        ])
+
+    threading.Thread(target=worker, daemon=True).start()
+
+# === [CH09] NFC 결제 처리 블록 ===
+nfc_processing_lock = threading.Lock()
+
+def on_nfc_connect(tag):
+    if not nfc_processing_lock.acquire(blocking=False):
+        print(" NFC 결제 처리 중복 방지: 이미 처리 중")
+        return True
+
+    print(" NFC 태그 인식됨")
+
+    if tag.ndef:
+        for record in tag.ndef.records:
+            if record.type == 'urn:nfc:wkt:T' and record.text == "MOAS":
+                print(" MOAS 태그 감지, NFC 결제 시작")
+                threading.Thread(target=process_nfc_payment, daemon=True).start()
+                break
+    else:
+        print("NDEF 메시지 없음 또는 포맷이 아닙니다")
+
+    return True
+
+def process_nfc_payment():
+    try:
+        selected = selected_product[0]
+        if not selected:
+            print("NFC 결제 실패: 선택된 상품 없음")
+            nfc_processing_lock.release()
+            return
+
+        idx = list(P_labels.keys()).index(selected) + 1
+        order_id = f"order_test_00{idx}"
+
+        print(f"NFC 결제: Firebase 상태 변경 {order_id} → paid")
+        patch_res = SESSION.patch(f"{ORDERS_URL}/{order_id}.json", json={"status": "paid"}, timeout=5)
+
+        if patch_res.status_code != 200:
+            print(f"Firebase 상태 변경 실패: {patch_res.text}")
+            nfc_processing_lock.release()
+            return
+
+        start_payment_check()
+    except Exception as e:
+        print(f" NFC 결제 처리 오류: {e}")
+    finally:
+        nfc_processing_lock.release()
+
+# === [CH10] NFC 리스너 (재연결 루프 - 단일 정의)
+def nfc_listener():
+    while True:
+        try:
+            print(" NFC 리더기 연결 시도 중...")
+            clf = nfc.ContactlessFrontend('tty:USB0:pn532')  
+            print(" NFC 리더기 연결 성공")
+            while True:
+                clf.connect(rdwr={'on-connect': on_nfc_connect})
+                print(" 다음 태그 대기 중...")
+        except Exception as e:
+            print(f" NFC 리더기 에러: {e}")
+            print("5초 후 NFC 리더기 재연결 시도 중...")
+            time.sleep(5)
+
+# === 실행 ===
+frames["product"] 
+show_page("main")
+threading.Thread(target=nfc_listener, daemon=True).start()
+root.mainloop()
