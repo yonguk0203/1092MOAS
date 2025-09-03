@@ -1,0 +1,919 @@
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+class AlramActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_alram)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+class CuponActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_cupon)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+class FAQ_Activity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_faq)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+class FavoriteActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_favorite)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+class HelpActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_help)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import androidx.appcompat.app.AppCompatActivity
+
+class LodingActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_loding)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()  //
+        }, 2000)
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+
+
+class MainActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_main)
+
+        val btnHelp = findViewById<Button>(R.id.btn_help)
+
+        btnHelp.setOnClickListener {
+            val intent = Intent(this, HelpActivity::class.java )
+            startActivity(intent)
+        }
+    }
+}
+
+package com.example.extest
+
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Bundle
+import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.firebase.database.*
+
+class MapsActivity : MenubarActivity(), OnMapReadyCallback {
+    private lateinit var mMap: GoogleMap
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var dbRef: DatabaseReference
+
+    private var vendingMarker: com.google.android.gms.maps.model.Marker? = null
+    private var myMarker: com.google.android.gms.maps.model.Marker? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_map)
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        dbRef = FirebaseDatabase.getInstance().getReference("device/location")
+
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+        mMap.uiSettings.isZoomControlsEnabled = true
+        mMap.uiSettings.isMyLocationButtonEnabled = true
+
+        // 현재 위치 가져오기
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            mMap.isMyLocationEnabled = true
+
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    val myLatLng = LatLng(location.latitude, location.longitude)
+                    myMarker?.remove()
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 17f))
+                }
+            }
+        }
+
+        // Firebase에서 기기 위치 불러오기 (10초)
+        dbRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val lat = snapshot.child("lat").getValue(Double::class.java)
+                val lon = snapshot.child("lon").getValue(Double::class.java)
+                if (lat != null && lon != null) {
+                    val deviceLatLng = LatLng(lat, lon)
+
+                    vendingMarker?.remove()
+                    vendingMarker = mMap.addMarker(
+                        MarkerOptions()
+                            .position(deviceLatLng)
+                            .title("자판기 위치")
+                            .icon(resizeMarkerIcon(R.drawable.map_icon_image, 84, 84)) // 크기 조절
+                    )
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    // 마커 아이콘
+    private fun resizeMarkerIcon(resId: Int, width: Int, height: Int): BitmapDescriptor {
+        val bitmap = BitmapFactory.decodeResource(resources, resId)
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, false)
+        return BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.MotionEvent
+import android.view.View
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView   // ✅ 추가: 포인트 UI 표시
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import android.widget.Toast
+import com.google.firebase.database.FirebaseDatabase
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
+
+
+
+open class MenubarActivity : AppCompatActivity() {
+
+    protected lateinit var drawerLayout: DrawerLayout
+    private lateinit var popupLayer: View
+    private val pointRate = 0.1
+    private val PREFS_NAME = "app_prefs"
+    private val KEY_POINTS = "user_points"
+
+
+    private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
+        val contents = result.contents ?: run {
+            Toast.makeText(this, "스캔이 취소되었습니다.", Toast.LENGTH_SHORT).show()
+            return@registerForActivityResult
+        }
+        val n = parseMoas(contents)
+        if (n == null) {
+            Toast.makeText(this, "지원하지 않는 QR입니다.", Toast.LENGTH_SHORT).show()
+            return@registerForActivityResult
+        }
+        val orderId   = "order_test_%03d".format(n)  // ex) 1 → order_test_001
+        val productId = "A%03d".format(n)            // ex) 1 → A001
+        val ref = FirebaseDatabase.getInstance()
+            .getReference("orders")
+            .child(orderId)
+
+        ref.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                val price = snapshot.child("price").getValue(Int::class.java) ?: 0
+                val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                val oldPoints = prefs.getInt(KEY_POINTS, 0)
+                val earnedPoints = (price * pointRate).toInt()
+                val newTotalPoints = oldPoints + earnedPoints
+
+
+                prefs.edit().putInt(KEY_POINTS, newTotalPoints).apply()
+
+                updatePointUI(newTotalPoints)
+
+                ref.updateChildren(mapOf(
+                    "status" to "paid",
+                    "product_id" to productId
+                )).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(this, "결제 완료: $orderId / 적립 $earnedPoints P", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this, "Firebase 업데이트 실패", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun parseMoas(text: String): Int? {
+        // MOAS_3OBJ → 3
+        val m = Regex("""^MOAS_(\d)OBJ$""").find(text) ?: return null
+        val n = m.groupValues[1].toIntOrNull() ?: return null
+        return if (n in 1..6) n else null
+    }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
+
+
+    protected fun setContentLayout(layoutResId: Int) {
+
+        setContentView(R.layout.activity_menubar)
+
+        layoutInflater.inflate(layoutResId, findViewById(R.id.content_frame))
+
+        initMenuBar()
+
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val totalPoints = prefs.getInt(KEY_POINTS, 0)
+        updatePointUI(totalPoints)
+    }
+
+    protected fun updatePointUI(points: Int) {
+        val sidebarPointView = findViewById<TextView?>(R.id.sidebarPointText)
+        sidebarPointView?.text = "$points"
+
+        val pointDetailView = findViewById<TextView?>(R.id.pointDetailText)
+        pointDetailView?.text = "$points"
+    }
+
+
+    protected fun showPopup() {
+        popupLayer.visibility = View.VISIBLE
+    }
+
+    protected fun hidePopup() {
+        popupLayer.visibility = View.GONE
+    }
+
+
+    // 하단 메뉴바 코드
+    private fun initMenuBar() {
+        drawerLayout = findViewById(R.id.drawerLayout)
+
+        val btnMenu = findViewById<ImageView>(R.id.menu)
+        val btnSearch = findViewById<ImageView>(R.id.search)
+        val btnHome = findViewById<ImageView>(R.id.home)
+        val btnMyPage = findViewById<ImageView>(R.id.mypage)
+        val btnpaid = findViewById<ImageView>(R.id.paid)
+        val btnCard  = findViewById<ImageView>(R.id.btn_card)
+        val btnQr  = findViewById<ImageView>(R.id.btn_qr)
+        popupLayer = findViewById(R.id.popup_layer)
+
+        // 메뉴 버튼 → 사이드바 열기
+        bindPressEffectAndClick(
+            btnMenu,
+            offRes = R.mipmap.menu_image_nomal,
+            onRes = R.mipmap.menu_image_push
+        ) {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        // 검색 버튼
+        bindPressEffectAndClick(
+            btnSearch,
+            offRes = R.mipmap._search_image_nomal,
+            onRes = R.mipmap._search_image_push
+        ) {
+            startActivity(Intent(this, MapsActivity::class.java))
+        }
+
+        // 홈 버튼
+        bindPressEffectAndClick(
+            btnHome,
+            offRes = R.mipmap.home_image_nomal,
+            onRes = R.mipmap.home_image_push
+        ) {
+            startActivity(Intent(this, MainActivity::class.java))
+        }
+
+        // 마이페이지 버튼
+        bindPressEffectAndClick(
+            btnMyPage,
+            offRes = R.mipmap.mypage_image_nomal,
+            onRes = R.mipmap.mypage_image_push
+        ) {
+            startActivity(Intent(this, MYpageActivity::class.java))
+        }
+
+        // 결제 팝업 버튼
+        bindPressEffectAndClick(
+            btnpaid,
+            offRes = R.mipmap.paid_image_nomal,
+            onRes = R.mipmap.paid_image_push
+        ) {
+            showPopup()
+        }
+
+        // 카드 결제 버튼
+        bindPressEffectAndClick(
+            btnCard,
+            offRes = R.mipmap.button_card_off,
+            onRes = R.mipmap.button_card_on
+        ) {
+            // 아직 기능 없음
+        }
+
+        // QR 결제 버튼
+        bindPressEffectAndClick(
+            btnQr,
+            offRes = R.mipmap.button_qr_off,
+            onRes = R.mipmap.button_qr_on
+        ) {
+            val options = ScanOptions().apply {
+                setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                setPrompt("QR 코드를 스캔하세요")
+                setBeepEnabled(true)
+                setOrientationLocked(true)
+                setBarcodeImageEnabled(false)
+            }
+            barcodeLauncher.launch(options)
+        }
+
+        // 팝업 클릭 시 닫기
+        popupLayer.setOnClickListener {
+            hidePopup()
+        }
+
+        // 뒤로가기로 사이드바 닫기
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                } else if (popupLayer.visibility == View.VISIBLE) {
+                    hidePopup()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
+        initSideBarButtons()
+    }
+
+
+    private fun initSideBarButtons() {
+        val btnPoint = findViewById<Button>(R.id.btn_point)
+        val btnCoupon = findViewById<Button>(R.id.btn_coupon)
+        val btnHistory = findViewById<Button>(R.id.btn_paid_log)
+        val btnPayment = findViewById<Button>(R.id.btn_payment)
+        val btnFavorite = findViewById<Button>(R.id.btn_favorite)
+        val btnNotice = findViewById<Button>(R.id.btn_notice)
+        val btnFaq = findViewById<Button>(R.id.btn_faq)
+        val btnManual = findViewById<Button>(R.id.btn_help)
+        val btnAlram = findViewById<Button>(R.id.btn_alram)
+        val btnSetting = findViewById<Button>(R.id.btn_setting)
+
+        btnPoint.setOnClickListener {
+            startActivity(Intent(this, PointActivity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnCoupon.setOnClickListener {
+            startActivity(Intent(this, CuponActivity::class.java)) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnHistory.setOnClickListener {
+            startActivity(Intent(this, PaidLogActivity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnPayment.setOnClickListener {
+            startActivity(Intent(this, PaidActivity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnFavorite.setOnClickListener {
+            startActivity(Intent(this, FavoriteActivity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnNotice.setOnClickListener {
+            startActivity(Intent(this, NoticeActivity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnFaq.setOnClickListener {
+            startActivity(Intent(this, FAQ_Activity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnManual.setOnClickListener {
+            startActivity(Intent(this, HelpActivity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnAlram.setOnClickListener {
+            startActivity(Intent(this, AlramActivity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnSetting.setOnClickListener {
+            startActivity(Intent(this, SettingActivity::class.java )) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+    }
+
+
+    private fun bindPressEffectAndClick(
+        view: ImageView,
+        offRes: Int,
+        onRes: Int,
+        onClick: () -> Unit
+    ) {
+        view.isClickable = true
+        view.isFocusable = true
+        view.setImageResource(offRes)
+
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> view.setImageResource(onRes)
+                MotionEvent.ACTION_UP -> {
+                    view.setImageResource(offRes)
+                    v.performClick()
+                    onClick()
+                }
+                MotionEvent.ACTION_CANCEL -> view.setImageResource(offRes)
+            }
+            true
+        }
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+import androidx.core.view.GravityCompat
+
+class MYpageActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_mypage)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+
+    private fun initSideBarButtons() {
+        val btnSetting = findViewById<Button>(R.id.btn_setting)
+        val btnCoupon = findViewById<Button>(R.id.btn_coupon)
+        val btnHistory = findViewById<Button>(R.id.btn_paid_log)
+        val btnPaid = findViewById<Button>(R.id.btn_paid)
+        val btnFavorite = findViewById<Button>(R.id.btn_favorite)
+
+
+        btnSetting.setOnClickListener {
+            startActivity(Intent(this, SettingActivity::class.java)) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnCoupon.setOnClickListener {
+            startActivity(Intent(this, CuponActivity::class.java)) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnHistory.setOnClickListener {
+            startActivity(Intent(this, PaidLogActivity::class.java)) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnPaid.setOnClickListener {
+            startActivity(Intent(this, PaidActivity::class.java)) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        btnFavorite.setOnClickListener {
+            startActivity(Intent(this, FavoriteActivity::class.java)) //
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+class NoticeActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_notice)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+class PaidActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_paid)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+class PaidLogActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_paidlog)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+
+class PointActivity : MenubarActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activity_point)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+    }
+
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+}
+
+package com.example.extest
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import androidx.activity.OnBackPressedCallback
+
+
+class SettingActivity : MenubarActivity() {
+    private val PREFS_NAME = "app_prefs"
+    private val KEY_POINTS = "user_points"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentLayout(R.layout.activitiy_setting)
+
+
+        val backBtn = findViewById<Button>(R.id.btn_back)
+        backBtn?.setOnClickListener {
+            goToMain()
+        }
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goToMain()
+            }
+        })
+
+
+        val resetBtn = findViewById<Button>(R.id.btn_setup)
+        resetBtn?.setOnClickListener {
+            val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+            prefs.edit().putInt(KEY_POINTS, 0).apply()
+
+            updatePointUI(0)
+        }
+    }
+
+    private fun goToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
+    }
+
+
+}
+
+package com.example.extest
+
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
+
+import org.junit.Test
+import org.junit.runner.RunWith
+
+import org.junit.Assert.*
+
+/**
+ * Instrumented test, which will execute on an Android device.
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+@RunWith(AndroidJUnit4::class)
+class ExampleInstrumentedTest {
+    @Test
+    fun useAppContext() {
+        // Context of the app under test.
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("com.example.extest", appContext.packageName)
+    }
+}
+
+package com.example.extest
+
+import org.junit.Test
+
+import org.junit.Assert.*
+
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+class ExampleUnitTest {
+    @Test
+    fun addition_isCorrect() {
+        assertEquals(4, 2 + 2)
+    }
+}
