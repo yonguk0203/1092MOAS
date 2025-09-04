@@ -1,0 +1,101 @@
+int motorPins[6] = {7, 8, 3, 4, 5, 6};  // 모터 1~6 제어 핀 (1번=7, 2번=8)
+
+// 액츄에이터 제어 핀 (L298N IN1, IN2)
+int actuatorIN1 = 11;  
+int actuatorIN2 = 10;
+
+bool isMotorRunning = false;
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Arduino Ready");
+
+  // 모터 핀 초기화
+  for (int i = 0; i < 6; i++) {
+    pinMode(motorPins[i], OUTPUT);
+    digitalWrite(motorPins[i], LOW);
+  }
+
+  // 액츄에이터 핀 초기화
+  pinMode(actuatorIN1, OUTPUT);
+  pinMode(actuatorIN2, OUTPUT);
+  digitalWrite(actuatorIN1, LOW);
+  digitalWrite(actuatorIN2, LOW);
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+
+  //엑츄에이터 디폴트 위치
+  Serial.println("Initial actuator reset (Backward 4s)");
+  digitalWrite(actuatorIN1, LOW);
+  digitalWrite(actuatorIN2, HIGH);
+  delay(4000);
+  digitalWrite(actuatorIN1, LOW);
+  digitalWrite(actuatorIN2, LOW);
+}
+
+void loop() {
+  if (Serial.available() > 0 && !isMotorRunning) {
+    char inputChar = Serial.read();
+    Serial.print("Received: ");
+    Serial.println(inputChar);
+
+    if (inputChar >= '1' && inputChar <= '6') {
+      int motorNumber = inputChar - '0';   
+      delay(2500);                         // 실행 전 2.5초 대기
+      rotateMotor(motorNumber - 1, 3800);  // 해당 모터 구동
+    } else {
+      Serial.println("Invalid input");
+    }
+  }
+}
+
+void rotateMotor(int index, int durationMs) {
+  isMotorRunning = true;
+
+  // 모든 모터 OFF
+  for (int i = 0; i < 6; i++) {
+    digitalWrite(motorPins[i], LOW);
+  }
+
+  digitalWrite(LED_BUILTIN, HIGH);  // 동작 표시 LED
+
+  // 선택된 모터 ON
+  digitalWrite(motorPins[index], HIGH);
+  delay(durationMs);
+
+  // 선택된 모터 OFF
+  digitalWrite(motorPins[index], LOW);
+
+  digitalWrite(LED_BUILTIN, LOW);   // 종료 표시
+
+  // 모터 종료 후 액츄에이터 시퀀스 실행
+  delay(2000);  
+  runActuatorSequence();
+
+  isMotorRunning = false;
+}
+
+void runActuatorSequence() {
+  // 전진 (정회전) 3초
+  digitalWrite(actuatorIN1, HIGH);
+  digitalWrite(actuatorIN2, LOW);
+  Serial.println("Actuator Forward");
+  delay(7000);
+
+  // 정지 2초
+  digitalWrite(actuatorIN1, LOW);
+  digitalWrite(actuatorIN2, LOW);
+  delay(3000);
+
+  // 후진 (역회전) 3초
+  digitalWrite(actuatorIN1, LOW);
+  digitalWrite(actuatorIN2, HIGH);
+  Serial.println("Actuator Backward");
+  delay(8000);
+
+  // 정지
+  digitalWrite(actuatorIN1, LOW);
+  digitalWrite(actuatorIN2, LOW);
+  Serial.println("Actuator Stop");
+}
